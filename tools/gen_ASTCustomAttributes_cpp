@@ -1,0 +1,49 @@
+#!/usr/bin/env python3
+import sys
+
+CODE_TEMPLATE = '''
+{header}
+#include "ASTCustomAttributes.hpp"
+
+#define REGISTER_AST(AST_CLASS) if (const auto *const p = dynamic_cast<const AST_CLASS*>(ast)) return GetCustomAttributesImpl(p);
+
+
+std::vector<Attribute> GetCustomAttributes(const DB::IAST* ast) {{
+{register_asts}
+    return GetCustomAttributesImpl(ast);
+}}
+'''
+
+CODE_HEADER = '// >>THIS FILE IS AUTO GENERATED<< (DON\'T MODIFY ITS CONTENT)'
+
+
+def main():
+    register_asts = []
+    # takes ASTCustomAttributes.hpp as its input
+    for line in sys.stdin:
+        if '#define' in line or 'AST_CUSTOM_ATTRIBUTES' not in line:
+            continue
+        line = line.strip()
+        enabled = True
+        if line.startswith('// '):
+            enabled = False
+            line = line[len('// '):]
+        if not line.startswith('AST_CUSTOM_ATTRIBUTES'):
+            print(line)
+        assert line.startswith('AST_CUSTOM_ATTRIBUTES')
+        line = line[len('AST_CUSTOM_ATTRIBUTES'):]
+        line = line.strip('()')
+        ast_class = line.split(', ')[0]
+        register_cmd = f'REGISTER_AST({ast_class})'
+        if not enabled:
+            register_cmd = '// ' + register_cmd
+        register_asts.append(' '*4 + register_cmd)
+    code = CODE_TEMPLATE.format(**{
+        'header': CODE_HEADER,
+        'register_asts': '\n'.join(register_asts),
+    })
+    sys.stdout.write(code)
+
+
+if __name__ == '__main__':
+    main()

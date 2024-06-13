@@ -1,0 +1,71 @@
+#!/usr/bin/env python3
+import sys
+
+CODE_TEMPLATE = '''
+{header}
+
+#pragma once
+
+{count_macros}
+
+#define REGISTER_ATTR(ATTR_NAME) \
+    attributes.emplace_back(#ATTR_NAME, SerializeAttributeValue(ast->ATTR_NAME));
+
+#define FOREACH_ARG(FUNC, ...) \
+    FOREACH_ARG_IMPL(COUNT_ARGS(__VA_ARGS__), FUNC, __VA_ARGS__)
+
+#define FOREACH_ARG_IMPL(N, FUNC, ...) \
+    FOREACH_ARG_IMPL_(N, FUNC, __VA_ARGS__)
+
+#define FOREACH_ARG_IMPL_(N, FUNC, ...) \
+    FOREACH_ARG_##N(FUNC, __VA_ARGS__)
+
+{foreach_macros}
+
+#define DO_NOTHING(A) (void)(A);
+'''
+
+CODE_HEADER = '// >>THIS FILE IS AUTO GENERATED<< (DON\'T MODIFY ITS CONTENT)'
+
+MACRO_TEMPLATE = '#define FOREACH_ARG_2(FUNC, A, ...) FUNC(A)  FOREACH_ARG_1(FUNC, __VA_ARGS__)'
+
+
+def make_COUNT_macros(max_N: int) -> str:
+    assert max_N >= 1
+    rev_nums = map(str, reversed(range(1, max_N+1)))
+    escaped_nums = map(lambda x: '_' + x, map(str, range(1, max_N+1)))
+    return '\n'.join([
+        f'#define COUNT_ARGS(...) COUNT_ARGS_IMPL(__VA_ARGS__, {", ".join(rev_nums)})',
+        f'#define COUNT_ARGS_IMPL({", ".join(escaped_nums)}, N, ...) N',
+    ])
+
+
+def _make_FOREACH_macro(i: int) -> str:
+    assert i >= 2
+    macro = '#define ' + f'FOREACH_ARG_{i}(FUNC, A, ...)'.ljust(30) + f'FUNC(A) FOREACH_ARG_{i-1}(FUNC, __VA_ARGS__)'
+    return macro
+
+
+def make_FOREACH_macros(max_N: int) -> str:
+    macros = [
+        '#define FOREACH_ARG_1(FUNC, A) FUNC(A)'
+    ]
+    for i in range(2, max_N+1):
+        macros.append(_make_FOREACH_macro(i))
+    return '\n'.join(macros)
+
+
+def main():
+    assert len(sys.argv) == 2
+    max_N = int(sys.argv[1])
+    
+    code = CODE_TEMPLATE.format(**{
+        'header': CODE_HEADER,
+        'count_macros': make_COUNT_macros(max_N),
+        'foreach_macros': make_FOREACH_macros(max_N),
+    })
+    sys.stdout.write(code)
+
+
+if __name__ == '__main__':
+    main()

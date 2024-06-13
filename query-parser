@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+ClickHouse/build/programs/clickhouse query-parser $@
