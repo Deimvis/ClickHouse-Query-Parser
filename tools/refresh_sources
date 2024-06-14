@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+set -e
+
+git pull
+git submodule update
+
+cd ClickHouse
+git checkout master
+git submodule update --remote --merge
+git add .
+git commit -m "automatic sync with ClickHouse"
+git remote rm fork || true
+git remote add fork https://github.com/Deimvis/ClickHouse.git
+git push fork master
+cd ..
+
+git add ClickHouse
+git commit -m "automatic sync with ClickHouse"
+git remote rm origin || true
+git remote add origin https://github.com/Deimvis/ClickHouse-Query-Parser.git
+git push origin master
