@@ -1,0 +1,17 @@
+#!/usr/bin/env python3
+import sys
+
+replace_from = "# "
+
+replace_to = ""
+
+def main():
+    code_path = sys.argv[1]
+    with open(code_path) as f:
+        code = f.read()
+    code = code.replace(replace_from, replace_to)
+    with open(code_path, "w") as f:
+        f.write(code)
+
+if __name__ == '__main__':
+    main()
