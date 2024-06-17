@@ -13,8 +13,6 @@ endif
 codegen:
 	@tools/gen_Macros_hpp 50 > $$QUERY_PARSER_SRC/Macros.hpp
 	@tools/gen_ASTCustomAttributes_cpp < $$QUERY_PARSER_SRC/ASTCustomAttributes.hpp > $$QUERY_PARSER_SRC/ASTCustomAttributes.cpp
-	@tools/fix_query-parser_CMakeLists_txt $$QUERY_PARSER_SRC/CMakeLists.txt
-	@tools/fix_CMakeLists_txt $$CLICKHOUSE_SRC/CMakeLists.txt
 
 build: codegen
 	@cd ClickHouse && \
