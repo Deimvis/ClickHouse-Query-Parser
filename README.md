@@ -20,3 +20,11 @@ make rebuild
 ```bash
 make test
 ```
+
+## Python
+
+Query Parser can be used through Python
+
+```bash
+./query-parser-py/run < ~/sql
+```

@@ -1,11 +1,16 @@
 export CLICKHOUSE_SRC=ClickHouse
 export QUERY_PARSER_SRC=ClickHouse/programs/query-parser
 
-OS_NAME := $(shell uname -s | tr A-Z a-z)
+OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
+ARCH := $(shell uname -m)
 
-ifeq ($(OS_NAME), Darwin)
-	@echo "OS_NAME: $(OS_NAME)"
-	CH_BUILD_COMMAND := cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang -DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++ -S . -B build && cmake --build build
+$(info Selecting build for $(OS)-$(ARCH))
+ifeq ($(OS), darwin)
+	ifeq ($(UName_M),x86_64)
+		CH_BUILD_COMMAND := cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang -DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++ -S . -B build && cmake --build build
+    else
+        $(error platform $(OS)-$(ARCH) is not supported)
+	endif
 else
 	CH_BUILD_COMMAND := cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -S . -B build && cd build && ninja
 endif
