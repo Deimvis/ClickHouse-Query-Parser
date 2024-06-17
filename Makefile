@@ -1,3 +1,4 @@
+export CLICKHOUSE_SRC=ClickHouse
 export QUERY_PARSER_SRC=ClickHouse/programs/query-parser
 
 OS_NAME := $(shell uname -s | tr A-Z a-z)
@@ -6,12 +7,14 @@ ifeq ($(OS_NAME), Darwin)
 	@echo "OS_NAME: $(OS_NAME)"
 	CH_BUILD_COMMAND := cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang -DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++ -S . -B build && cmake --build build
 else
-	CH_BUILD_COMMAND := cmake -S . -B build && cd build && ninja
+	CH_BUILD_COMMAND := cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -S . -B build && cd build && ninja
 endif
 
 codegen:
 	@tools/gen_Macros_hpp 50 > $$QUERY_PARSER_SRC/Macros.hpp
 	@tools/gen_ASTCustomAttributes_cpp < $$QUERY_PARSER_SRC/ASTCustomAttributes.hpp > $$QUERY_PARSER_SRC/ASTCustomAttributes.cpp
+	@tools/fix_query-parser_CMakeLists_txt $$QUERY_PARSER_SRC/CMakeLists.txt
+	@tools/fix_CMakeLists_txt $$CLICKHOUSE_SRC/CMakeLists.txt
 
 build: codegen
 	@cd ClickHouse && \
