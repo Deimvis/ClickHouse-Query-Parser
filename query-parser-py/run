@@ -2,5 +2,5 @@
 
 set -e
 
-export QUERY_PARSER_SO_LIB=./ClickHouse/build/programs/query-parser/libclickhouse_query_parser_SO.so
+export QUERY_PARSER_SO_LIB=$(realpath ./ClickHouse/build/programs/query-parser/libclickhouse_query_parser_SO.so)
 LD_PRELOAD="$QUERY_PARSER_SO_LIB" python3 query-parser-py/query_parser.py
