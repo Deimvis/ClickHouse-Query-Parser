@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+
+set -e
+
+TAG="$1"
+if [ -z "$TAG" ]; then
+    echo "commit tag must be specified as a first argument"
+    exit 1
+fi
+
+cd ClickHouse
+git checkout --recurse-submodules master
+
+if git show-ref --quiet refs/heads/"qp-$TAG"; then
+  echo "branch for tag '$TAG' already exists"
+  git checkout --recurse-submodules "qp-$TAG"
+  exit 0
+fi
+
+git remote rm upstream || true
+git remote add upstream https://github.com/ClickHouse/ClickHouse.git
+
+if ! git ls-remote --tags upstream "$TAG" | grep -q "$TAG"; then
+  echo "Error! Tag '$TAG' does not exist in the  https://github.com/ClickHouse/ClickHouse.git repository"
+  
+  SIMILAR_TAGS=$(git ls-remote --tags upstream "*$TAG*" | awk -F'/' '{print $3}' | sort -u)
+  if [ -n "$SIMILAR_TAGS" ]; then
+    echo "Maybe you meant one of these tags:"
+    echo "$SIMILAR_TAGS"
+  fi
+  
+  exit 1
+fi
+
+git fetch upstream --tags
+
+if ! git rev-parse "$TAG" > /dev/null 2>&1; then
+  echo "Bug! Tag '$TAG' was not fetched locally"
+  exit 1
+fi
+
+git checkout master
+git checkout -b "qp-$TAG"
+
+echo "Now perform rebase with the following command:"
+echo "* cd ClickHouse"
+echo "* git rebase --onto tags/\"$TAG\" $(git merge-base master upstream/master) \"qp-$TAG\""
+echo "After rebase sync your submodules to required versions with the following command:"
+echo "* git submodule update --init --recursive"
+echo "In order to checkout to another branch use --recurse-submodules flag to automatically update submodules."
+echo "Example: git checkout --recurse-submodules master"
