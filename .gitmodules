@@ -1,4 +1,3 @@
 [submodule "ClickHouse"]
 	path = ClickHouse
-	url = https://github.com/ClickHouse/ClickHouse.git
-	branch = 23.8
+	url = https://github.com/Deimvis/ClickHouse

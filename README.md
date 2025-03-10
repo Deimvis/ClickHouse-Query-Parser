@@ -23,10 +23,29 @@ make test
 
 ## Python
 
-Query Parser can be used through Python
+Query Parser can be launched using Python bindings
 
 ```bash
 ./query-parser-py/run < ~/sql
+```
+
+Or custom off-the-shelf Python helper functions may be used
+
+```python
+from query_parser_py.query_parser import sql_parse
+
+result = sql_parse("select 1", need_print=True, remote_tables=True)
+```
+
+`need_print` - saves the graph picture of a query AST to "graph.svg" and prints the parsing result.
+
+## Docker
+
+Dockerfile assembles a library for debian Linux.
+You can transfer the shared library from the container to your local machine like this:
+
+```bash
+docker cp <container id>:/usr/src/ClickHouse/build/programs/query-parser/libclickhouse_query_parser_SO.so /tmp/parser.so
 ```
 
 ## Build Query Parser for custom ClickHouse version
@@ -65,7 +84,7 @@ Patches:
 
 ## FAQ
 
-### Signal 11 using Python bindings
+### Signal 11 (SIGSEGV) using Python bindings
 
 **Reason**: most likely you use `LD_PRELOAD` env variable and one of your Python packages conflicts with it (e.g. [CmdStanPy](https://github.com/stan-dev/cmdstanpy) creates a subprocess that fails when query parser shared library is in `LD_PRELOAD`)
 
